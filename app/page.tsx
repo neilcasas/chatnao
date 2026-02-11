@@ -823,12 +823,7 @@ export default function Home() {
               {messages?.length ? (
                 messages.map((message) => {
                   const isSender = message.senderId === session.userId;
-                  const mainText = isSender
-                    ? message.originalText
-                    : message.translatedText;
-                  const secondaryText = isSender
-                    ? message.translatedText
-                    : message.originalText;
+                  const mainText = message.translatedText || message.originalText;
                   return (
                     <div
                       key={message.messageId}
@@ -844,21 +839,20 @@ export default function Home() {
                         }`}
                       >
                         {mainText ? <p>{mainText}</p> : null}
-                        {secondaryText && secondaryText !== mainText ? (
-                          <p
-                            className={`mt-2 text-xs ${
-                              isSender ? "text-emerald-100" : "text-stone-500"
+                        {message.audioUrl ? (
+                          <div
+                            className={`mt-3 rounded-xl px-3 py-2 ${
+                              isSender
+                                ? "bg-emerald-800/60"
+                                : "bg-emerald-50"
                             }`}
                           >
-                            {secondaryText}
-                          </p>
-                        ) : null}
-                        {message.audioUrl ? (
-                          <audio
-                            className="mt-3 w-full"
-                            controls
-                            src={message.audioUrl}
-                          />
+                            <audio
+                              className="h-10 w-full min-w-[220px]"
+                              controls
+                              src={message.audioUrl}
+                            />
+                          </div>
                         ) : null}
                         <p
                           className={`mt-2 text-[0.65rem] uppercase tracking-[0.2em] ${
