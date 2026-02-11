@@ -21,7 +21,6 @@ export async function POST(request: Request) {
       age,
       gender,
       specialty,
-      preferredLanguage,
     } = body ?? {};
 
     if (
@@ -30,8 +29,7 @@ export async function POST(request: Request) {
       !password ||
       !role ||
       typeof age !== "number" ||
-      !gender ||
-      !preferredLanguage
+      !gender
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -47,7 +45,6 @@ export async function POST(request: Request) {
       age,
       gender,
       specialty: specialty ?? undefined,
-      preferredLanguage,
     });
 
     return NextResponse.json({ user });

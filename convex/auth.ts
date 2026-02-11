@@ -20,7 +20,6 @@ export const signup = action({
       v.literal("prefer_not_to_say")
     ),
     specialty: v.optional(specialties),
-    preferredLanguage: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.runQuery(internal.users.getByEmail, {
@@ -41,7 +40,6 @@ export const signup = action({
       age: args.age,
       gender: args.gender,
       specialty: args.specialty,
-      preferredLanguage: args.preferredLanguage,
       tokenIdentifier: args.email,
     });
 
@@ -53,7 +51,6 @@ export const signup = action({
       age: args.age,
       gender: args.gender,
       specialty: args.specialty ?? null,
-      preferredLanguage: args.preferredLanguage,
     };
   },
 });
@@ -83,7 +80,6 @@ export const login = action({
       age: user.age,
       gender: user.gender,
       specialty: user.specialty ?? null,
-      preferredLanguage: user.preferredLanguage,
     };
   },
 });

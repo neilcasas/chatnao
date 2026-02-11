@@ -16,7 +16,7 @@ export const specialties = v.union(
 );
 
 export default defineSchema({
-  // User profiles with role and language preference
+  // User profiles with role and specialty
   users: defineTable({
     name: v.string(),
     email: v.string(),
@@ -30,7 +30,6 @@ export default defineSchema({
       v.literal("prefer_not_to_say")
     ),
     specialty: v.optional(specialties), // Only for doctors
-    preferredLanguage: v.string(), // e.g., "en", "es", "tl"
     tokenIdentifier: v.string(), // for Clerk/Auth integration
   })
     .index("by_token", ["tokenIdentifier"])
@@ -55,7 +54,8 @@ export default defineSchema({
 
     // Content handling
     originalText: v.string(), // Text as typed/spoken
-    translatedText: v.string(), // Text for the recipient
+    translatedText: v.string(), // Processed text for the recipient
+    searchText: v.string(), // Combined text for search
 
     // Audio handling
     audioStorageId: v.optional(v.id("_storage")), // Convex built-in storage
@@ -66,7 +66,7 @@ export default defineSchema({
     .index("by_chat", ["chatId"])
     // Search functionality
     .searchIndex("search_body", {
-      searchField: "originalText",
+      searchField: "searchText",
       filterFields: ["chatId"],
     }),
 });
