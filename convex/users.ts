@@ -49,7 +49,6 @@ export const create = internalMutation({
       v.literal("prefer_not_to_say")
     ),
     specialty: v.optional(specialties),
-    tokenIdentifier: v.string(),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("users", args);

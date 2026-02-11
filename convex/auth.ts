@@ -54,7 +54,6 @@ export const signup = action({
       age: args.age,
       gender: args.gender,
       specialty: args.specialty,
-      tokenIdentifier: args.email,
       }
     );
 

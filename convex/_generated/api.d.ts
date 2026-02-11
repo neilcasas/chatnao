@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as chats from "../chats.js";
 import type * as messages from "../messages.js";
+import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 
 import type {
@@ -23,6 +24,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   chats: typeof chats;
   messages: typeof messages;
+  seed: typeof seed;
   users: typeof users;
 }>;
 

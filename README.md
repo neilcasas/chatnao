@@ -20,7 +20,13 @@ ChatNao is a real-time doctor and patient communication workspace that rewrites 
 
 ## AI tools and resources leveraged
 - Gemini 2.5 Flash for clarity rewrites and chat summaries
-- GPT-5.2-Codex for coding
+- GPT-5.2-Codex and Claude Opus 4.5 for coding
+
+## Test accounts
+- Doctor: Dr. Maya Patel (Cardiology). Email: maya.patel@chatnao.test. Password: Test1234!
+- Doctor: Dr. Lucas Chen (Pediatrics). Email: lucas.chen@chatnao.test. Password: Test1234!
+- Patient: Aisha Bello (recent chest tightness). Email: aisha.bello@chatnao.test. Password: Test1234!
+- Patient: Marco Ruiz (knee pain after soccer). Email: marco.ruiz@chatnao.test. Password: Test1234!
 
 ## Known limitations, trade-offs, or unfinished parts
 - No role-based access enforcement beyond client checks
