@@ -968,6 +968,17 @@ export default function Home() {
                         }`}
                       >
                         {mainText ? <p>{mainText}</p> : null}
+                        {isSender &&
+                        message.originalText &&
+                        message.originalText !== message.translatedText ? (
+                          <p
+                            className={`mt-1 text-xs italic ${
+                              isSender ? "text-emerald-200" : "text-stone-500"
+                            }`}
+                          >
+                            {message.originalText}
+                          </p>
+                        ) : null}
                         {message.audioUrl ? (
                           <div
                             className={`mt-3 rounded-xl px-3 py-2 ${
