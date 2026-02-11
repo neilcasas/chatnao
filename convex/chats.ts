@@ -1,10 +1,53 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { v } from "convex/values";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+
+const buildSummaryPrompt = (transcript: string) =>
+  `You are a medical summarization assistant. Summarize the conversation in a concise, structured format.
+
+Requirements:
+- Keep it under 200 words.
+- Use plain language for the summary.
+- Highlight: symptoms, diagnoses (if mentioned), medications, and follow-up actions.
+- Do not add new information or advice.
+
+Conversation:
+${transcript}`;
+
+const generateSummary = async (prompt: string) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not set");
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    systemInstruction: "You write concise medical conversation summaries.",
+  });
+  const chat = model.startChat({ history: [] });
+  const result = await chat.sendMessage(prompt);
+  return result.response.text().trim();
+};
 
 export const getById = internalQuery({
   args: { chatId: v.id("chats") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.chatId);
+  },
+});
+
+export const updateSummary = internalMutation({
+  args: { chatId: v.id("chats"), summary: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.chatId, { summary: args.summary });
   },
 });
 
@@ -78,5 +121,35 @@ export const createChat = mutation({
       status: "active",
       summary: undefined,
     });
+  },
+});
+
+export const summarizeChat = action({
+  args: { chatId: v.id("chats") },
+  handler: async (ctx, args) => {
+    const messages = await ctx.runQuery(internal.messages.listForSummary, {
+      chatId: args.chatId,
+      limit: 40,
+    });
+
+    if (!messages.length) {
+      throw new Error("No messages to summarize");
+    }
+
+    const transcript = messages
+      .map((message) => {
+        const content = message.translatedText || message.originalText;
+        return `${message.senderRole}: ${content}`.trim();
+      })
+      .join("\n");
+
+    const summary = await generateSummary(buildSummaryPrompt(transcript));
+
+    await ctx.runMutation(internal.chats.updateSummary, {
+      chatId: args.chatId,
+      summary,
+    });
+
+    return { summary };
   },
 });

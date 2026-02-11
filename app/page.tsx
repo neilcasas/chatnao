@@ -102,6 +102,8 @@ export default function Home() {
   const [messageText, setMessageText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [uploadState, setUploadState] = useState<UploadState>("idle");
+  const [summaryText, setSummaryText] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -129,6 +131,7 @@ export default function Home() {
   const createChat = useMutation(api.chats.createChat);
   const createUploadUrl = useMutation(api.messages.createUploadUrl);
   const sendMessage = useAction(api.messages.sendMessage);
+  const summarizeChat = useAction(api.chats.summarizeChat);
 
   useEffect(() => {
     const stored = localStorage.getItem("chatnao-session");
@@ -149,6 +152,16 @@ export default function Home() {
     if (!activeChatId && listChats && listChats.length > 0) {
       setActiveChatId(listChats[0].chatId);
     }
+  }, [activeChatId, listChats]);
+
+  useEffect(() => {
+    if (!activeChatId || !listChats) {
+      setSummaryText(null);
+      return;
+    }
+
+    const active = listChats.find((chat) => chat.chatId === activeChatId);
+    setSummaryText(active?.summary ?? null);
   }, [activeChatId, listChats]);
 
   useEffect(() => {
@@ -293,6 +306,21 @@ export default function Home() {
         error: "Unable to send message right now.",
       });
     }
+  };
+
+  const handleSummarize = async () => {
+    if (!activeChatId) return;
+    setSummaryLoading(true);
+    try {
+      const result = await summarizeChat({ chatId: activeChatId });
+      setSummaryText(result.summary);
+    } catch (error) {
+      setStatus({
+        loading: false,
+        error: "Unable to summarize this chat right now.",
+      });
+    }
+    setSummaryLoading(false);
   };
 
   const handleStartRecording = async () => {
@@ -773,11 +801,31 @@ export default function Home() {
                 <Badge variant="secondary">LLM assisted</Badge>
               ) : null}
             </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSummarize}
+                disabled={!activeChatId || summaryLoading}
+              >
+                {summaryLoading ? "Summarizing..." : "Summarize chat"}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {status.error ? (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {status.error}
+              </div>
+            ) : null}
+
+            {summaryText ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-stone-700">
+                <p className="text-xs uppercase tracking-[0.24em] text-emerald-700">
+                  Summary
+                </p>
+                <p className="mt-2 whitespace-pre-line">{summaryText}</p>
               </div>
             ) : null}
             <div className="flex items-center gap-3">

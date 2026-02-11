@@ -1,7 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { action, internalMutation, mutation, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
 const buildPrompt = (senderRole: string, text: string) => {
@@ -101,6 +107,32 @@ export const listByChat = query({
         };
       })
     );
+  },
+});
+
+export const listForSummary = internalQuery({
+  args: { chatId: v.id("chats"), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 40;
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .order("desc")
+      .take(limit);
+
+    const enriched = await Promise.all(
+      messages.map(async (message) => {
+        const sender = await ctx.db.get(message.senderId);
+        return {
+          senderRole: sender?.role ?? "unknown",
+          originalText: message.originalText,
+          translatedText: message.translatedText,
+          timestamp: message.timestamp,
+        };
+      })
+    );
+
+    return enriched.reverse();
   },
 });
 
