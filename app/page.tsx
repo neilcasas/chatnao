@@ -819,7 +819,7 @@ export default function Home() {
               </div>
             ) : null}
 
-            <div className="max-h-[420px] space-y-3 overflow-y-auto pr-2">
+            <div className="max-h-105 space-y-3 overflow-y-auto pr-2">
               {messages?.length ? (
                 messages.map((message) => {
                   const isSender = message.senderId === session.userId;
@@ -885,7 +885,7 @@ export default function Home() {
                 onChange={(event) => setMessageText(event.target.value)}
                 placeholder="Write a message"
                 rows={3}
-                className="w-full resize-none rounded-2xl border border-emerald-900/10 bg-white/90 px-4 py-3 text-sm text-emerald-950 outline-none transition focus:border-emerald-900/30 focus:ring-2 focus:ring-[var(--ring)]"
+                className="w-full resize-none rounded-2xl border border-emerald-900/10 bg-white/90 px-4 py-3 text-sm text-emerald-950 outline-none transition focus:border-emerald-900/30 focus:ring-2 focus:ring-(--ring)"
               />
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <Button

@@ -2,8 +2,9 @@
 
 import bcrypt from "bcryptjs";
 import { v } from "convex/values";
-import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { action } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { specialties } from "./schema";
 
 export const signup = action({
@@ -21,7 +22,18 @@ export const signup = action({
     ),
     specialty: v.optional(specialties),
   },
-  handler: async (ctx, args) => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    userId: Id<"users">;
+    name: string;
+    email: string;
+    role: "doctor" | "patient";
+    age: number;
+    gender: "male" | "female" | "other" | "prefer_not_to_say";
+    specialty: string | null;
+  }> => {
     const existing = await ctx.runQuery(internal.users.getByEmail, {
       email: args.email,
     });
@@ -32,7 +44,9 @@ export const signup = action({
 
     const passwordHash = await bcrypt.hash(args.password, 10);
 
-    const userId = await ctx.runMutation(internal.users.create, {
+    const userId: Id<"users"> = await ctx.runMutation(
+      internal.users.create,
+      {
       name: args.name,
       email: args.email,
       passwordHash,
@@ -41,7 +55,8 @@ export const signup = action({
       gender: args.gender,
       specialty: args.specialty,
       tokenIdentifier: args.email,
-    });
+      }
+    );
 
     return {
       userId,
@@ -57,7 +72,18 @@ export const signup = action({
 
 export const login = action({
   args: { email: v.string(), password: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    userId: Id<"users">;
+    name: string;
+    email: string;
+    role: "doctor" | "patient";
+    age: number;
+    gender: "male" | "female" | "other" | "prefer_not_to_say";
+    specialty: string | null;
+  }> => {
     const user = await ctx.runQuery(internal.users.getByEmail, {
       email: args.email,
     });

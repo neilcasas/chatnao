@@ -1,11 +1,8 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import {
-  action,
-  internalMutation,
-  mutation,
-  query,
-} from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const buildPrompt = (senderRole: string, text: string) => {
   if (senderRole === "doctor") {
@@ -31,35 +28,21 @@ Rules:
 Message: ${text}`;
 };
 
-const generateGeminiText = async (prompt: string) => {
-  const apiKey = process.env.CONVEX_GEMINI_API_KEY;
+const generateGeminiText = async (systemPrompt: string, message: string) => {
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("CONVEX_GEMINI_API_KEY is not set");
+    throw new Error("GEMINI_API_KEY is not set");
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 200,
-        },
-      }),
-    }
-  );
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    systemInstruction: systemPrompt,
+  });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini error: ${errorText}`);
-  }
-
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  return typeof text === "string" ? text.trim() : "";
+  const chat = model.startChat({ history: [] });
+  const result = await chat.sendMessage(message);
+  return result.response.text().trim();
 };
 
 export const createUploadUrl = mutation({
@@ -148,7 +131,10 @@ export const sendMessage = action({
     originalText: v.string(),
     audioStorageId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, args) => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ messageId: Id<"messages">; processedText: string }> => {
     const chat = await ctx.runQuery(internal.chats.getById, {
       chatId: args.chatId,
     });
@@ -180,12 +166,14 @@ export const sendMessage = action({
 
     if (trimmed) {
       const prompt = buildPrompt(sender.role, trimmed);
-      processedText = await generateGeminiText(prompt);
+      processedText = await generateGeminiText(prompt, trimmed);
     }
 
     const searchText = [trimmed, processedText].filter(Boolean).join("\n");
 
-    const messageId = await ctx.runMutation(internal.messages.create, {
+    const messageId: Id<"messages"> = await ctx.runMutation(
+      internal.messages.create,
+      {
       chatId: args.chatId,
       senderId: args.senderId,
       originalText: trimmed,
@@ -193,7 +181,8 @@ export const sendMessage = action({
       searchText,
       audioStorageId: args.audioStorageId,
       timestamp: Date.now(),
-    });
+      }
+    );
 
     return {
       messageId,
