@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChatNao
 
-## Getting Started
+## Project overview
+ChatNao is a real-time doctor and patient communication workspace that rewrites messages for clarity, supports audio notes, and keeps searchable conversation history.
 
-First, run the development server:
+## Features attempted and completed
+- Email and password login/signup with hashed storage
+- Doctor discovery and patient chat initiation
+- Doctor view of active clients and chat list
+- Real-time chat with LLM-assisted message rewriting
+- Audio recording, upload, and playback in the chat thread
+- Conversation search within an active chat
+- AI-generated conversation summaries
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech stack used
+- Next.js App Router
+- Convex for database, realtime queries, and storage
+- Tailwind CSS and shadcn/ui components
+- Google Generative AI (Gemini) for message rewriting and summaries
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## AI tools and resources leveraged
+- Gemini 2.5 Flash for clarity rewrites and chat summaries
+- GPT-5.2-Codex for coding
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Known limitations, trade-offs, or unfinished parts
+- No role-based access enforcement beyond client checks
+- No persistent user session beyond local storage
+- No global search across all chats yet
+- Audio transcription is not implemented

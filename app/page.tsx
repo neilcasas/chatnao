@@ -92,6 +92,66 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function markdownToHtml(markdown: string) {
+  const escaped = markdown
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  const lines = escaped.split("\n");
+  const htmlLines: string[] = [];
+  let inList = false;
+
+  const closeList = () => {
+    if (inList) {
+      htmlLines.push("</ul>");
+      inList = false;
+    }
+  };
+
+  const formatInline = (text: string) => {
+    return text
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  };
+
+  lines.forEach((line) => {
+    if (line.startsWith("### ")) {
+      closeList();
+      htmlLines.push(`<h3>${formatInline(line.slice(4))}</h3>`);
+      return;
+    }
+    if (line.startsWith("## ")) {
+      closeList();
+      htmlLines.push(`<h2>${formatInline(line.slice(3))}</h2>`);
+      return;
+    }
+    if (line.startsWith("# ")) {
+      closeList();
+      htmlLines.push(`<h1>${formatInline(line.slice(2))}</h1>`);
+      return;
+    }
+    if (line.startsWith("- ")) {
+      if (!inList) {
+        htmlLines.push("<ul>");
+        inList = true;
+      }
+      htmlLines.push(`<li>${formatInline(line.slice(2))}</li>`);
+      return;
+    }
+    closeList();
+    if (line.trim().length === 0) {
+      htmlLines.push("<br />");
+      return;
+    }
+    htmlLines.push(`<p>${formatInline(line)}</p>`);
+  });
+
+  closeList();
+  return htmlLines.join("");
+}
+
 export default function Home() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [step, setStep] = useState(1);
@@ -109,18 +169,25 @@ export default function Home() {
   const chunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // load chats for the signed-in user
   const listChats = useQuery(
     api.chats.listForUser,
     session ? { userId: session.userId, role: session.role } : "skip"
   ) as ChatSummary[] | undefined;
+  
+  // list doctors for discovery
   const doctors = useQuery(
     api.users.listDoctors,
     session?.role === "patient" ? {} : "skip"
   ) as DoctorSummary[] | undefined;
+  
+  // load messages for the active chat
   const messages = useQuery(
     api.messages.listByChat,
     activeChatId ? { chatId: activeChatId } : "skip"
   ) as MessageSummary[] | undefined;
+
+  // search messages in the active chat
   const searchResults = useQuery(
     api.messages.search,
     searchTerm && activeChatId
@@ -128,13 +195,20 @@ export default function Home() {
       : "skip"
   ) as SearchSummary[] | undefined;
 
+  // create a chat between a doctor and patient
   const createChat = useMutation(api.chats.createChat);
+
+  // request a signed upload URL for audio
   const createUploadUrl = useMutation(api.messages.createUploadUrl);
+
+  // send a message with LLM processing
   const sendMessage = useAction(api.messages.sendMessage);
+  
+  // request an AI summary of the active chat
   const summarizeChat = useAction(api.chats.summarizeChat);
 
   useEffect(() => {
-    const stored = localStorage.getItem("chatnao-session");
+    const stored = localStorage.getItem("ChatNao-session");
     if (stored) {
       setSession(JSON.parse(stored) as SessionUser);
     }
@@ -142,9 +216,9 @@ export default function Home() {
 
   useEffect(() => {
     if (session) {
-      localStorage.setItem("chatnao-session", JSON.stringify(session));
+      localStorage.setItem("ChatNao-session", JSON.stringify(session));
     } else {
-      localStorage.removeItem("chatnao-session");
+      localStorage.removeItem("ChatNao-session");
     }
   }, [session]);
 
@@ -179,7 +253,7 @@ export default function Home() {
 
   const headline = useMemo(() => {
     if (mode === "login") {
-      return "Welcome back to Chatnao";
+      return "Welcome back to ChatNao";
     }
     return step === 1
       ? "Create your account"
@@ -195,6 +269,7 @@ export default function Home() {
     setStatus({ loading: true, error: "" });
 
     try {
+      // Client fetch: create a new account via the auth API.
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -232,6 +307,7 @@ export default function Home() {
     setStatus({ loading: true, error: "" });
 
     try {
+      // Client fetch: sign in via the auth API.
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -412,7 +488,7 @@ export default function Home() {
                 Cross-language care conversations that feel human.
               </h1>
               <p className="max-w-xl text-lg leading-8 text-stone-700">
-                Chatnao pairs patients and doctors in near real time. Messages
+                ChatNao pairs patients and doctors in near real time. Messages
                 are rewritten for clarity so each role gets the right level of
                 detail without losing context.
               </p>
@@ -825,7 +901,12 @@ export default function Home() {
                 <p className="text-xs uppercase tracking-[0.24em] text-emerald-700">
                   Summary
                 </p>
-                <p className="mt-2 whitespace-pre-line">{summaryText}</p>
+                <div
+                  className="summary-markdown mt-2"
+                  dangerouslySetInnerHTML={{
+                    __html: markdownToHtml(summaryText),
+                  }}
+                />
               </div>
             ) : null}
             <div className="flex items-center gap-3">

@@ -58,3 +58,29 @@ body {
 .animate-float-in {
   animation: float-in 0.6s ease-out both;
 }
+
+.summary-markdown h1,
+.summary-markdown h2,
+.summary-markdown h3 {
+  font-family: var(--font-display), "Times New Roman", serif;
+  margin-top: 0.5rem;
+  color: #0f2a23;
+}
+
+.summary-markdown p {
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+
+.summary-markdown ul {
+  margin-top: 0.4rem;
+  padding-left: 1.2rem;
+  list-style: disc;
+}
+
+.summary-markdown code {
+  border-radius: 6px;
+  background: rgba(15, 118, 110, 0.12);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.85em;
+}

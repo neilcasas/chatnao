@@ -30,9 +30,7 @@ export default defineSchema({
       v.literal("prefer_not_to_say")
     ),
     specialty: v.optional(specialties), // Only for doctors
-    tokenIdentifier: v.string(), // for Clerk/Auth integration
   })
-    .index("by_token", ["tokenIdentifier"])
     .index("by_email", ["email"])
     .index("by_role_specialty", ["role", "specialty"]),
 

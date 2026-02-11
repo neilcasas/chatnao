@@ -14,7 +14,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Chatnao",
+  title: "ChatNao",
   description: "Cross-language care chats with thoughtful onboarding",
 };
 
