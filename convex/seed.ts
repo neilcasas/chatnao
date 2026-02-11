@@ -35,13 +35,16 @@ export const seedDatabase = internalMutation({
         age: input.age,
         gender: input.gender,
         specialty: input.specialty as
-          | "Cardiology"
-          | "Dermatology"
           | "General Practice"
-          | "Neurology"
+          | "Cardiology"
           | "Pediatrics"
+          | "Neurology"
+          | "Orthopedics"
+          | "Dermatology"
           | "Psychiatry"
-          | "Other"
+          | "Oncology"
+          | "Endocrinology"
+          | "Gastroenterology"
           | undefined,
       });
     };
